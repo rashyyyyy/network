@@ -94,3 +94,4 @@ class Program
         }
     }
 }
+// you will need to run in visual studio if you want to build it for yourself, let me know if you have any issues 
