@@ -55,7 +55,7 @@ async def purge(ctx, amount: int):
 @bot.command()
 @commands.check(has_manage_roles_permission)
 async def mute(ctx, member: discord.Member):
-    # own config here eg what role 
+    # own config here eg what role and what to do
     pass
 
 # Command to unmute a member
