@@ -12,7 +12,7 @@ bot = commands.Bot(command_prefix=PREFIX, intents=intents, help_command=None)
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
 
-# Function to check if user has the manage_roles permission
+# anybody with manageroles permissions can use you can change eg manage_channels
 def has_manage_roles_permission(ctx):
     return ctx.author.guild_permissions.manage_roles
 
@@ -23,14 +23,14 @@ async def kick(ctx, member: discord.Member, *, reason=None):
     await member.kick(reason=reason)
     await ctx.send(f'{member.mention} has been kicked.')
 
-# Command to ban a member
+# ban command change it to discord id if you want
 @bot.command()
 @commands.check(has_manage_roles_permission)
 async def ban(ctx, member: discord.Member, *, reason=None):
     await member.ban(reason=reason)
     await ctx.send(f'{member.mention} has been banned.')
 
-# Command to unban a member
+#  unbans from server
 @bot.command()
 @commands.check(has_manage_roles_permission)
 async def unban(ctx, *, member):
@@ -45,7 +45,7 @@ async def unban(ctx, *, member):
             await ctx.send(f'{user.mention} has been unbanned.')
             return
 
-# Command to purge messages
+# purges message
 @bot.command()
 @commands.check(has_manage_roles_permission)
 async def purge(ctx, amount: int):
@@ -65,14 +65,14 @@ async def unmute(ctx, member: discord.Member):
     # add your own command here eg what role
     pass
 
-# Command to announce a message in a specific channel
+# announces with channel id so !announce channel id message
 @bot.command()
 @commands.check(has_manage_roles_permission)
 async def announce(ctx, channel_id: int, *, message):
     channel = bot.get_channel(channel_id)
     await channel.send(message)
 
-# Command to display help
+# Command to list commands
 @bot.command()
 @commands.check(has_manage_roles_permission)
 async def help(ctx):
