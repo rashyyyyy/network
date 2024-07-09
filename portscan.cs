@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -16,43 +17,24 @@ class Program
                 Console.WriteLine("Enter the target IP address:");
                 string ipAddressString = Console.ReadLine();
 
-                // Validate the IP address
-                IPAddress ipAddress;
-                if (!IPAddress.TryParse(ipAddressString, out ipAddress))
+                if (string.IsNullOrWhiteSpace(ipAddressString))
+                {
+                    Console.WriteLine("No IP address entered. Please try again.");
+                    continue;
+                }
+
+                if (!IPAddress.TryParse(ipAddressString, out IPAddress ipAddress))
                 {
                     Console.WriteLine("Invalid IP address format. Please try again.");
                     continue;
                 }
 
-                Console.WriteLine("Starting port scan for IP address: " + ipAddress + "\n");
+                Console.WriteLine($"Starting port scan for IP address: {ipAddress}\n");
 
-                // Iterate through ports 1 to 65535
-                for (int port = 1; port <= 65535; port++)
+                Parallel.For(1, 65536, async port =>
                 {
-                    using (TcpClient tcpClient = new TcpClient())
-                    {
-                        try
-                        {
-                            // Set the connect timeout to 500 milliseconds
-                            tcpClient.SendTimeout = 500;
-                            tcpClient.ReceiveTimeout = 500;
-
-                            // Attempt to connect to the IP address and port
-                            tcpClient.Connect(ipAddress, port);
-
-                            // If connection successful, port is open
-                            Console.WriteLine($"Port {port} is open");
-
-                            // Attempt to identify the service
-                            IdentifyService(tcpClient);
-                        }
-                        catch (Exception)
-                        {
-                            // If connection fails, port is closed
-                            // Console.WriteLine($"Port {port} is closed");
-                        }
-                    }
-                }
+                    await ScanPort(ipAddress, port);
+                });
 
                 Console.WriteLine("\nPort scan complete.");
             }
@@ -74,24 +56,43 @@ class Program
         Console.ReadKey();
     }
 
+    static async Task ScanPort(IPAddress ipAddress, int port)
+    {
+        using (TcpClient tcpClient = new TcpClient())
+        {
+            try
+            {
+                var connectTask = tcpClient.ConnectAsync(ipAddress, port);
+                if (await Task.WhenAny(connectTask, Task.Delay(500)) == connectTask)
+                {
+                    if (tcpClient.Connected)
+                    {
+                        Console.WriteLine($"Port {port} is open");
+                        IdentifyService(tcpClient);
+                    }
+                }
+            }
+            catch
+            {
+                // Handle exceptions as needed
+            }
+        }
+    }
+
     static void IdentifyService(TcpClient tcpClient)
     {
         try
         {
-            // Read response from the port
             NetworkStream stream = tcpClient.GetStream();
             byte[] data = new byte[1024];
             int bytesRead = stream.Read(data, 0, data.Length);
             string response = Encoding.ASCII.GetString(data, 0, bytesRead);
 
-            // Print the response
             Console.WriteLine($"Service on port: {response.Trim()}");
         }
-        catch (Exception)
+        catch
         {
-            // Failed to identify service
-            // Console.WriteLine("Unable to identify service.");
+            // Handle exceptions as needed
         }
     }
 }
-// you will need to run in visual studio if you want to build it for yourself, let me know if you have any issues 
